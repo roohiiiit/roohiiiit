@@ -60,8 +60,10 @@ An app project — **Cooked?** — currently in the works.
 
 ### Connect
 
-| | |
-|---|---|
-| Hire me | [profrohitferns@gmail.com](mailto:profrohitferns@gmail.com) |
-| Portfolio | [rfernz.biz](https://www.rfernz.biz) |
-| LinkedIn | [linkedin.com/in/rohitfernantez](https://www.linkedin.com/in/rohitfernantez) |
+<div align="center">
+
+[![Hire Me](https://img.shields.io/badge/Hire_Me-profrohitferns%40gmail.com-161b22?style=flat-square&logo=gmail&logoColor=EA4335)](mailto:profrohitferns@gmail.com)
+[![Portfolio](https://img.shields.io/badge/Portfolio-rfernz.biz-161b22?style=flat-square&logo=googlechrome&logoColor=39d353)](https://www.rfernz.biz)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-rohitfernantez-161b22?style=flat-square&logo=linkedin&logoColor=0A66C2)](https://www.linkedin.com/in/rohitfernantez)
+
+</div>
