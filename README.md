@@ -2,27 +2,21 @@
 
 <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=18&duration=3000&pause=1200&color=7C3AED&center=true&vCenter=true&width=720&height=60&lines=Hey%2C+I'm+Rohit+Fernantez;AI%2FML+Builder+%7C+Full-Stack+Dev;Founder+of+Kochi.Code;Press+START+to+explore+%E2%96%BA" alt="Typing animation" />
 
-**Self-taught builder from Kerala, India 🌴**
+**Self-taught builder from Kerala, India**
 Studying AI/ML and running a digital agency on the side.
 
 [![Go to my portfolio](https://img.shields.io/badge/▶_PRESS_START-Go_to_my_portfolio-7C3AED?style=for-the-badge)](https://www.rfernz.biz)
 
 </div>
 
----
-
-## 🎮 Player Stats
-
 <div align="center">
-<img src="player-stats.svg" alt="RDR2-inspired Player Stats" width="100%" />
+<img src="player-stats.svg" alt="Player Stats" width="100%" />
 </div>
 
----
-
-## 🗺️ Quest Log (click to expand)
+### Quests
 
 <details>
-<summary><b>⚔️ Main Quest: Applied AI & ML Systems</b></summary>
+<summary><b>Main Quest: Applied AI & ML Systems</b></summary>
 
 <br>
 
@@ -31,7 +25,7 @@ Exploring and building practical AI/ML applications, LLM fine-tuning workflows, 
 </details>
 
 <details>
-<summary><b>🕹️ Side Quest: Portfolio</b></summary>
+<summary><b>Side Quest: Portfolio</b></summary>
 
 <br>
 
@@ -40,7 +34,7 @@ My personal developer portfolio showcasing my projects, builds, and experiments 
 </details>
 
 <details>
-<summary><b>🍳 Side Quest: Cooked? App</b></summary>
+<summary><b>Side Quest: Cooked? App</b></summary>
 
 <br>
 
@@ -48,9 +42,7 @@ An app project — **Cooked?** — currently in the works.
 
 </details>
 
----
-
-## 🧰 Inventory
+<div align="center">
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
@@ -63,17 +55,11 @@ An app project — **Cooked?** — currently in the works.
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)
 
----
-
-## 🤠 My RDR World
-
-<div align="center">
-<img src="hero-walk.svg" alt="Red Dead world built from my GitHub contributions" width="100%" />
 </div>
 
----
-
-## 📊 Stats
+<div align="center">
+<img src="hero-walk.svg" alt="GitHub Contributions World" width="100%" />
+</div>
 
 <div align="center">
 
@@ -82,22 +68,16 @@ An app project — **Cooked?** — currently in the works.
 
 </div>
 
----
+### Connect
 
-## 🎯 Choose your path
-
-| If you want to... | Go here |
+| | |
 |---|---|
-| 🏢 Hire me / Kochi.Code | [Send a message](mailto:your-email@example.com) |
-| 🕹️ See my work | [Portfolio](https://www.rfernz.biz) |
-| 🤝 Collaborate | [LinkedIn](https://linkedin.com/in/your-linkedin) |
-
----
+| Hire me | [profrohitferns@gmail.com](mailto:profrohitferns@gmail.com) |
+| Portfolio | [rfernz.biz](https://www.rfernz.biz) |
+| LinkedIn | [linkedin.com/in/rohitfernantez](https://www.linkedin.com/in/rohitfernantez) |
 
 <div align="center">
 
 ![Profile views](https://komarev.com/ghpvc/?username=roohiiiit&color=blueviolet&style=flat-square&label=PLAYERS+VISITED)
-
-*GAME OVER? Never. Insert coin to continue.* 🪙
 
 </div>
