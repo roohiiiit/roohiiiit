@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=18&duration=3000&pause=1200&color=7C3AED&center=true&vCenter=true&width=720&height=60&lines=Hey%2C+I'm+Rohit+Fernantez;Developer+%7C+Designer+%7C+AI+Builder;Founder+of+Kochi.Code;Press+START+to+explore+%E2%96%BA" alt="Typing animation" />
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=18&duration=3000&pause=1200&color=7C3AED&center=true&vCenter=true&width=720&height=60&lines=Hey%2C+I'm+Rohit+Fernantez;AI%2FML+Builder+%7C+Full-Stack+Dev;Founder+of+Kochi.Code;Press+START+to+explore+%E2%96%BA" alt="Typing animation" />
 
 **Self-taught builder from Kerala, India 🌴**
-Studying AI/ML at LPU and running a digital agency on the side.
+Studying AI/ML and running a digital agency on the side.
 
-[![Play my portfolio](https://img.shields.io/badge/▶_PRESS_START-Play_my_pixel_portfolio-7C3AED?style=for-the-badge)](https://your-portfolio-link)
+[![Go to my portfolio](https://img.shields.io/badge/▶_PRESS_START-Go_to_my_portfolio-7C3AED?style=for-the-badge)](https://www.rfernz.biz)
 
 </div>
 
@@ -16,16 +16,14 @@ Studying AI/ML at LPU and running a digital agency on the side.
 ```
 ┌──────────────────────────────────────────┐
 │  NAME    : Rohit Fernantez               │
-│  CLASS   : Full-Stack Dev / Motion Mage  │
+│  CLASS   : AI/ML & Full-Stack Dev        │
 │  GUILD   : Kochi.Code (Founder)          │
-│  LEVEL   : B.Tech AI/ML @ LPU            │
+│  LEVEL   : B.Tech AI/ML                  │
 │  REALM   : Kerala, India                 │
 ├──────────────────────────────────────────┤
 │  HTML/CSS/JS   ████████░░  80%           │
-│  Design        █████████░  90%           │
-│  Motion        ████████░░  80%           │
-│  AI / ML       ██████░░░░  60%           │
 │  Python        ██████░░░░  60%           │
+│  AI / ML       ████░░░░░░  40%           │
 └──────────────────────────────────────────┘
 ```
 
@@ -34,47 +32,29 @@ Studying AI/ML at LPU and running a digital agency on the side.
 ## 🗺️ Quest Log (click to expand)
 
 <details>
-<summary><b>⚔️ Main Quest: Kochi.Code</b></summary>
+<summary><b>⚔️ Main Quest: Applied AI & ML Systems</b></summary>
 
 <br>
 
-My digital agency in Kerala. Web development, app development, branding and marketing for local businesses, with a scroll-driven "film" style website.
+Exploring and building practical AI/ML applications, LLM fine-tuning workflows, and intelligent tools designed for real-world use.
 
 </details>
 
 <details>
-<summary><b>🕹️ Side Quest: Pixel Portfolio</b></summary>
+<summary><b>🕹️ Side Quest: Portfolio</b></summary>
 
 <br>
 
-My portfolio as a 16-bit RPG you walk around in, built in a single HTML/CSS/JS file with no frameworks.
+My personal developer portfolio showcasing my projects, builds, and experiments at [rfernz.biz](https://www.rfernz.biz).
 
 </details>
 
 <details>
-<summary><b>🧠 Side Quest: Parse (Team Cypher)</b></summary>
+<summary><b>🍳 Side Quest: Cooked? App</b></summary>
 
 <br>
 
-Hackathon project: an AI resume-to-job-description match scorer, built with my teammate Advait Varma.
-
-</details>
-
-<details>
-<summary><b>🌊 Side Quest: FloodSense</b></summary>
-
-<br>
-
-A digital flood early warning concept, born from a college project.
-
-</details>
-
-<details>
-<summary><b>🎬 Side Quest: Motion Graphics</b></summary>
-
-<br>
-
-Promo videos and motion work for apps and brands, using AI video tools, ElevenLabs voiceovers and CapCut/Premiere editing.
+An app project — **Cooked?** — currently in the works.
 
 </details>
 
@@ -86,6 +66,8 @@ Promo videos and motion work for apps and brands, using AI video tools, ElevenLa
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)
+![Unsloth](https://img.shields.io/badge/Unsloth-10B981?style=for-the-badge&logo=python&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)
@@ -117,9 +99,8 @@ Promo videos and motion work for apps and brands, using AI video tools, ElevenLa
 | If you want to... | Go here |
 |---|---|
 | 🏢 Hire me / Kochi.Code | [Send a message](mailto:your-email@example.com) |
-| 🕹️ See my work | [Pixel Portfolio](https://your-portfolio-link) |
+| 🕹️ See my work | [Portfolio](https://www.rfernz.biz) |
 | 🤝 Collaborate | [LinkedIn](https://linkedin.com/in/your-linkedin) |
-| 🎬 Watch my motion work | [Instagram](https://instagram.com/your-handle) |
 
 ---
 
