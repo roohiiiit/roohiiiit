@@ -13,19 +13,9 @@ Studying AI/ML and running a digital agency on the side.
 
 ## 🎮 Player Stats
 
-```
-┌──────────────────────────────────────────┐
-│  NAME    : Rohit Fernantez               │
-│  CLASS   : AI/ML & Full-Stack Dev        │
-│  GUILD   : Kochi.Code (Founder)          │
-│  LEVEL   : B.Tech AI/ML                  │
-│  REALM   : Kerala, India                 │
-├──────────────────────────────────────────┤
-│  HTML/CSS/JS   ████████░░  80%           │
-│  Python        ██████░░░░  60%           │
-│  AI / ML       ████░░░░░░  40%           │
-└──────────────────────────────────────────┘
-```
+<div align="center">
+<img src="player-stats.svg" alt="RDR2-inspired Player Stats" width="100%" />
+</div>
 
 ---
 
