@@ -65,10 +65,10 @@ An app project — **Cooked?** — currently in the works.
 
 ---
 
-## 🏙️ My GitHub City (rebuilt from my real activity every 12 hours)
+## 🤠 My RDR World
 
 <div align="center">
-<img src="hero-walk.svg" alt="Pixel city where each tower is one week of my GitHub commits" width="100%" />
+<img src="hero-walk.svg" alt="Red Dead world built from my GitHub contributions" width="100%" />
 </div>
 
 ---
