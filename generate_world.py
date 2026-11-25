@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
-"""Builds hero-walk.svg: an RDR2-inspired Wild West world generated from your real GitHub activity.
-
-Each mesa/frontier building = one week of contributions (taller = busier week).
-The gunslinger stands on the left and shoots stars representing your public repos.
-Hero level / XP / streak / repos / stars all come from your GitHub account.
+"""Builds hero-walk.svg: a minimalist Pac-Man navigating your real GitHub contribution grid,
+eating every active contribution block while evading patrolling ghosts.
 
 Usage:
   GH_USER=yourname GH_TOKEN=xxxx python3 generate_world.py
   python3 generate_world.py --demo      # fake data, for previewing the look
 """
+from collections import deque
 import json
-import math
 import os
 import random
 import sys
 import urllib.request
 
 OUT = os.environ.get("OUT", "hero-walk.svg")
-W, H, GROUND = 800, 200, 160
-GUN_X, GUN_Y = 58, 140
+W, H = 800, 176
+COLS, ROWS = 52, 7
 
 QUERY = """
 query($login: String!) {
@@ -52,30 +49,28 @@ def fetch(user, token):
         raise SystemExit(f"GitHub API error: {payload['errors']}")
     u = payload["data"]["user"]
     cal = u["contributionsCollection"]["contributionCalendar"]
-    weeks = [sum(d["contributionCount"] for d in w["contributionDays"]) for w in cal["weeks"]]
-    days = [d["contributionCount"] for w in cal["weeks"] for d in w["contributionDays"]]
+    grid = [[d["contributionCount"] for d in w["contributionDays"]] for w in cal["weeks"]]
+    days = [c for w in grid for c in w]
     return {
         "user": user,
         "total": cal["totalContributions"],
-        "weeks": weeks,
+        "grid": grid,
         "days": days,
         "repos": u["repositories"]["totalCount"],
         "stars": sum(n["stargazerCount"] for n in u["repositories"]["nodes"]),
-        "followers": u["followers"]["totalCount"],
     }
 
 
 def demo():
     random.seed(7)
-    days = [random.choice([0, 0, 0, 1, 2, 4, 6, 9]) for _ in range(364)]
-    weeks = [sum(days[i:i + 7]) for i in range(0, 364, 7)]
-    return {"user": "rohit", "total": sum(days), "weeks": weeks, "days": days,
-            "repos": 7, "stars": 12, "followers": 30}
+    grid = [[random.choice([0, 0, 0, 1, 2, 4, 6, 9]) for _ in range(7)] for _ in range(52)]
+    days = [c for w in grid for c in w]
+    return {"user": "rohit", "total": sum(days), "grid": grid, "days": days, "repos": 7, "stars": 12}
 
 
 def streak(days):
     counts = list(days)
-    if counts and counts[-1] == 0:  # today may not have commits yet
+    if counts and counts[-1] == 0:
         counts = counts[:-1]
     s = 0
     for c in reversed(counts):
@@ -86,164 +81,227 @@ def streak(days):
     return s
 
 
-def star_points(cx, cy, r_outer=9, r_inner=4):
-    """Return SVG polygon points string for a 5-point sheriff/sky star."""
-    pts = []
-    for k in range(10):
-        ang = -math.pi / 2 + k * math.pi / 5
-        r = r_outer if k % 2 == 0 else r_inner
-        pts.append(f"{cx + r * math.cos(ang):.1f},{cy + r * math.sin(ang):.1f}")
-    return " ".join(pts)
+def cell_color(count, mx):
+    if count <= 0:
+        return "#161b22"
+    ratio = count / max(mx, 1)
+    if ratio <= 0.25:
+        return "#0e4429"
+    if ratio <= 0.5:
+        return "#006d32"
+    if ratio <= 0.75:
+        return "#26a641"
+    return "#39d353"
+
+
+def ghost_loops():
+    """Return 3 patrolling ghost loops in grid coordinates (col, row)."""
+    def rect_loop(c1, r1, c2, r2):
+        pts = []
+        for c in range(c1, c2):
+            pts.append((c, r1))
+        for r in range(r1, r2):
+            pts.append((c2, r))
+        for c in range(c2, c1, -1):
+            pts.append((c, r2))
+        for r in range(r2, r1, -1):
+            pts.append((c1, r))
+        return pts
+
+    return [
+        ("#ef4444", rect_loop(8, 1, 22, 5)),   # Red ghost
+        ("#22d3ee", rect_loop(24, 0, 38, 4)),  # Cyan ghost
+        ("#f472b6", rect_loop(36, 2, 49, 6)),  # Pink ghost
+    ]
+
+
+def ghost_positions_at(step_idx, ghosts):
+    """Approximate grid positions of all ghosts at a given Pac-Man step."""
+    pos = set()
+    for _, loop in ghosts:
+        gc, gr = loop[(step_idx // 2) % len(loop)]
+        for dc in (-1, 0, 1):
+            for dr in (-1, 0, 1):
+                if abs(dc) + abs(dr) <= 1:
+                    pos.add((gc + dc, gr + dr))
+    return pos
+
+
+def bfs_path(start, goal, blocked):
+    """Shortest 4-way path from start to goal, avoiding blocked cells if possible."""
+    if start == goal:
+        return [start]
+    q = deque([(start, [start])])
+    seen = {start}
+    while q:
+        (c, r), path = q.popleft()
+        for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nc, nr = c + dc, r + dr
+            if 0 <= nc < COLS and 0 <= nr < ROWS and (nc, nr) not in seen:
+                if (nc, nr) in blocked and (nc, nr) != goal:
+                    continue
+                seen.add((nc, nr))
+                npath = path + [(nc, nr)]
+                if (nc, nr) == goal:
+                    return npath
+                q.append(((nc, nr), npath))
+    return None
+
+
+def plan_pacman_route(grid, ghosts):
+    """Plan a realistic Pac-Man route that eats all active cells while evading ghosts."""
+    active = {(wi, di) for wi in range(COLS) for di in range(ROWS) if grid[wi][di] > 0}
+    if not active:
+        return [(0, 3), (COLS - 1, 3)], {}
+
+    # Start from the earliest active cell (leftmost, then topmost)
+    curr = min(active, key=lambda p: (p[0], p[1]))
+    remaining = set(active)
+    remaining.discard(curr)
+    route = [curr]
+    eat_step = {curr: 0}
+
+    while remaining:
+        danger = ghost_positions_at(len(route), ghosts)
+        # Prefer safe nearby targets; fall back to any nearest target if needed
+        safe_candidates = [p for p in remaining if p not in danger]
+        pool = safe_candidates if safe_candidates else list(remaining)
+        # Pick nearest target (with slight bias toward moving forward/neighboring)
+        target = min(pool, key=lambda p: abs(p[0] - curr[0]) + abs(p[1] - curr[1]))
+
+        seg = bfs_path(curr, target, danger)
+        if seg is None:
+            seg = bfs_path(curr, target, set())
+        for nxt in seg[1:]:
+            route.append(nxt)
+            if nxt in remaining:
+                remaining.remove(nxt)
+                eat_step[nxt] = len(route) - 1
+        curr = target
+
+    return route, eat_step
+
+
+def dir_angle(a, b):
+    dc, dr = b[0] - a[0], b[1] - a[1]
+    if dc > 0:
+        return 0
+    if dc < 0:
+        return 180
+    if dr > 0:
+        return 90
+    return -90
 
 
 STATIC_CSS = """
-text { font-family: "Courier New", Courier, monospace; font-weight: bold; }
-.serif { font-family: Georgia, "Times New Roman", serif; }
-.twinkle { animation: twinkle 2.2s ease-in-out infinite alternate; }
-@keyframes twinkle { from { opacity: .25; } to { opacity: 1; } }
-.levelup { animation: levelup 12s linear infinite; }
-@keyframes levelup { 0%,88% { opacity:0; } 90% { opacity:1; } 92% { opacity:0; } 94% { opacity:1; } 96% { opacity:0; } 98% { opacity:1; } 99.5% { opacity:1; } 100% { opacity:0; } }
+text { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.jaw-top { animation: chompTop .22s ease-in-out infinite alternate; transform-origin: 0 0; }
+.jaw-bot { animation: chompBot .22s ease-in-out infinite alternate; transform-origin: 0 0; }
+@keyframes chompTop { from { transform: rotate(0deg); } to { transform: rotate(-35deg); } }
+@keyframes chompBot { from { transform: rotate(0deg); } to { transform: rotate(35deg); } }
 """
 
 
 def build(d):
-    weeks = d["weeks"][-52:]
-    n = len(weeks)
-    bw = W / n
-    mx = max(max(weeks), 1)
-    palette = ["#26100e", "#3f1713", "#5c2017", "#7c2d12", "#b45309"]
+    grid = d["grid"][-COLS:]
+    while len(grid) < COLS:
+        grid.insert(0, [0] * ROWS)
+    grid = [w[:ROWS] + [0] * max(0, ROWS - len(w)) for w in grid]
 
-    # ---- skyline of desert mesas / frontier town from weekly contributions
-    world = []
-    for i, c in enumerate(weeks):
-        h = 6 if c == 0 else 14 + int(c / mx * 86)
-        col = palette[0] if c == 0 else palette[min(4, 1 + int(c / mx * 4))]
-        x = i * bw
-        y = GROUND - h
-        world.append(f'<rect x="{x + 1:.1f}" y="{y}" width="{bw - 2:.1f}" height="{h}" fill="{col}"/>')
-        if h >= 32:
-            world.append(f'<rect x="{x + 3:.1f}" y="{y - 4}" width="{max(2.0, bw - 6):.1f}" height="4" fill="{col}"/>')
-        if h >= 24:
-            for row in range(y + 6, GROUND - 6, 10):
-                for cx in (x + 3, x + bw - 6):
-                    if (i * 7 + row) % 3:
-                        world.append(f'<rect x="{cx:.1f}" y="{row}" width="3" height="4" fill="#fde68a" opacity=".85"/>')
+    mx = max((c for w in grid for c in w), default=1)
+    x0, y0, step, size = 37, 54, 14, 10
 
-    # ---- stars to shoot = your public repos (max 8), shot from standing cowboy at (GUN_X, GUN_Y)
-    ncoins = max(1, min(d["repos"], 8))
-    xs = [440] if ncoins == 1 else [160 + i * (560 / (ncoins - 1)) for i in range(ncoins)]
-    pcts = [12.0 + i * (68.0 / max(ncoins - 1, 1)) for i in range(ncoins)]
+    def px(c, r):
+        return x0 + c * step + size // 2, y0 + r * step + size // 2
 
-    css = [STATIC_CSS]
-    star_targets = []
-    shot_beams = []
-    for i, (x, p) in enumerate(zip(xs, pcts)):
-        sy = 88 + (i % 2) * 18
-        # Star target stays visible until shot, then pops and fades
-        css.append(
-            f".st{i} {{ animation: st{i} 12s linear infinite; }} "
-            f"@keyframes st{i} {{ 0%,{p:.2f}% {{ opacity:1; transform:translateY(0); }} "
-            f"{p + 1.8:.2f}% {{ opacity:0; transform:translateY(-14px); }} "
-            f"99% {{ opacity:0; }} 100% {{ opacity:1; transform:translateY(0); }} }}"
-        )
-        pts = star_points(x, sy, r_outer=9, r_inner=4)
-        star_targets.append(
-            f'<g class="st{i}">'
-            f'<polygon points="{pts}" fill="#fbbf24" stroke="#fef08a" stroke-width="1"/>'
+    ghosts = ghost_loops()
+    route, eat_step = plan_pacman_route(grid, ghosts)
+    total_steps = max(len(route) - 1, 1)
+    dur = max(14, min(32, round(total_steps * 0.14)))
+
+    # ---- Compress Pac-Man keyframes to turns (straight segments interpolate smoothly)
+    pac_kf = []
+    prev_ang = dir_angle(route[0], route[1]) if len(route) > 1 else 0
+    sx, sy = px(*route[0])
+    pac_kf.append(f"0% {{ transform: translate({sx}px, {sy}px) rotate({prev_ang}deg); opacity: 1; }}")
+
+    for i in range(1, len(route)):
+        x, y = px(*route[i])
+        pct = (i / total_steps) * 95.0
+        next_ang = dir_angle(route[i], route[i + 1]) if i < len(route) - 1 else prev_ang
+        if next_ang != prev_ang or i == len(route) - 1:
+            pac_kf.append(f"{pct:.2f}% {{ transform: translate({x}px, {y}px) rotate({prev_ang}deg); opacity: 1; }}")
+            if next_ang != prev_ang:
+                pac_kf.append(f"{min(95.5, pct + 0.01):.2f}% {{ transform: translate({x}px, {y}px) rotate({next_ang}deg); opacity: 1; }}")
+            prev_ang = next_ang
+
+    ex, ey = px(*route[-1])
+    pac_kf.append(f"97%, 100% {{ transform: translate({ex}px, {ey}px) rotate({prev_ang}deg); opacity: 0; }}")
+
+    css = [
+        STATIC_CSS,
+        f".pac {{ animation: pacmove {dur}s linear infinite; }} @keyframes pacmove {{ {' '.join(pac_kf)} }}",
+    ]
+
+    # ---- Ghost patrol animations
+    ghost_svg = []
+    for gi, (gcol, loop) in enumerate(ghosts):
+        gkf = []
+        n = len(loop)
+        for idx, pt in enumerate(loop):
+            gx, gy = px(*pt)
+            pct = (idx / n) * 100.0
+            gkf.append(f"{pct:.2f}% {{ transform: translate({gx}px, {gy}px); }}")
+        gx0, gy0 = px(*loop[0])
+        gkf.append(f"100% {{ transform: translate({gx0}px, {gy0}px); }}")
+        gdur = max(8, dur // 2 + gi * 2)
+        css.append(f".g{gi} {{ animation: gm{gi} {gdur}s linear infinite; }} @keyframes gm{gi} {{ {' '.join(gkf)} }}")
+        ghost_svg.append(
+            f'<g class="g{gi}" opacity="0.88">'
+            f'<path d="M -5,5 L -5,-1 A 5,5 0 0,1 5,-1 L 5,5 L 2.5,3 L 0,5 L -2.5,3 Z" fill="{gcol}"/>'
+            f'<circle cx="-2" cy="-1.5" r="1.3" fill="#ffffff"/>'
+            f'<circle cx="2" cy="-1.5" r="1.3" fill="#ffffff"/>'
+            f'<circle cx="-1.7" cy="-1.5" r="0.65" fill="#0d1117"/>'
+            f'<circle cx="2.3" cy="-1.5" r="0.65" fill="#0d1117"/>'
             f'</g>'
         )
-        # Golden tracer beam from stationary revolver muzzle (GUN_X, GUN_Y) to star (x, sy)
-        p0 = max(0.0, p - 0.8)
-        p1 = min(99.5, p + 1.2)
-        css.append(
-            f".sh{i} {{ animation: sh{i} 12s linear infinite; opacity:0; }} "
-            f"@keyframes sh{i} {{ 0%,{p0:.2f}% {{ opacity:0; }} {p:.2f}% {{ opacity:1; }} {p1:.2f}%,100% {{ opacity:0; }} }}"
-        )
-        shot_beams.append(
-            f'<g class="sh{i}">'
-            f'<line x1="{GUN_X}" y1="{GUN_Y}" x2="{x:.1f}" y2="{sy}" stroke="#fde047" stroke-width="2" stroke-dasharray="5 3"/>'
-            f'<circle cx="{GUN_X}" cy="{GUN_Y}" r="5" fill="#fef08a"/>'
-            f'<circle cx="{x:.1f}" cy="{sy}" r="9" fill="#ef4444" opacity="0.75"/>'
-            f'</g>'
-        )
 
-    # ---- repo counter texts (0..ncoins)
-    bounds = [0.0] + pcts + [100.0]
-    counter = []
-    for k in range(ncoins + 1):
-        lo, hi = bounds[k], bounds[k + 1]
-        if k == 0:
-            kf = f"0%,{hi:.2f}% {{ opacity:1; }} {hi + .01:.2f}%,99.99% {{ opacity:0; }} 100% {{ opacity:1; }}"
-        elif k == ncoins:
-            kf = f"0%,{lo:.2f}% {{ opacity:0; }} {lo + .01:.2f}%,99.99% {{ opacity:1; }} 100% {{ opacity:0; }}"
-        else:
-            kf = (f"0%,{lo:.2f}% {{ opacity:0; }} {lo + .01:.2f}%,{hi:.2f}% {{ opacity:1; }} "
-                  f"{hi + .01:.2f}%,100% {{ opacity:0; }}")
-        css.append(f".s{k} {{ animation: s{k} 12s linear infinite; }} @keyframes s{k} {{ {kf} }}")
-        counter.append(f'<text class="s{k}" x="784" y="22" font-size="13" fill="#fbbf24" text-anchor="end">REPOS {k}/{ncoins}</text>')
+    # ---- Contribution cells
+    cells = []
+    for wi in range(COLS):
+        cx = x0 + wi * step
+        for di in range(ROWS):
+            cy = y0 + di * step
+            count = grid[wi][di]
+            col = cell_color(count, mx)
+            if (wi, di) in eat_step:
+                pct = (eat_step[(wi, di)] / total_steps) * 95.0
+                cls = f"c{wi}_{di}"
+                css.append(
+                    f".{cls} {{ animation: a{cls} {dur}s linear infinite; }} "
+                    f"@keyframes a{cls} {{ 0%,{max(0.0, pct - 0.1):.2f}% {{ opacity:1; }} "
+                    f"{min(96.0, pct + 0.3):.2f}%,97.5% {{ opacity:0.12; }} 100% {{ opacity:1; }} }}"
+                )
+                cells.append(f'<rect x="{cx}" y="{cy}" width="{size}" height="{size}" rx="2" fill="{col}" class="{cls}"/>')
+            else:
+                cells.append(f'<rect x="{cx}" y="{cy}" width="{size}" height="{size}" rx="2" fill="{col}"/>')
 
-    # ---- stats
-    level = 1 + d["total"] // 50
-    xp = (d["total"] % 50) / 50
     st = streak(d["days"])
-    user = d["user"].upper()
+    user = d["user"]
 
-    bg_stars = "".join(
-        f'<rect class="twinkle" x="{x}" y="{y}" width="3" height="3" fill="#fef3c7" style="animation-delay:{dl}s"/>'
-        for x, y, dl in [(65, 28, 0), (190, 16, .5), (315, 24, 1), (430, 14, .3), (565, 22, 1.4), (685, 14, .8)]
-    )
-
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-label="Red Dead world built from {user}'s GitHub contributions">
-<defs>
-  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="#140709"/>
-    <stop offset="55%" stop-color="#4c1218"/>
-    <stop offset="100%" stop-color="#b45309"/>
-  </linearGradient>
-</defs>
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-label="Minimalist Pac-Man contribution graph for {user}">
 <style>{"".join(css)}</style>
-<rect width="{W}" height="{H}" fill="url(#sky)"/>
-{bg_stars}
-<circle cx="510" cy="24" r="12" fill="#fde68a" opacity="0.9"/>
-<!-- Distant Cactus Silhouettes -->
-<rect x="748" y="136" width="4" height="24" fill="#1e0b09"/>
-<rect x="752" y="142" width="6" height="4" fill="#1e0b09"/>
-<rect x="754" y="138" width="4" height="6" fill="#1e0b09"/>
-{"".join(world)}
-<rect y="{GROUND}" width="{W}" height="{H - GROUND}" fill="#1a0c09"/>
-<rect y="{GROUND}" width="{W}" height="5" fill="#9a3412"/>
-<text x="400" y="190" font-size="9" fill="#d97706" text-anchor="middle">EACH MESA = 1 WEEK OF COMMITS  |  LAST 52 WEEKS</text>
-{"".join(star_targets)}
-{"".join(shot_beams)}
-<text x="16" y="22" class="serif" font-size="14" fill="#fef3c7" letter-spacing="1">{user}  LV.{level}</text>
-<rect x="16" y="30" width="120" height="8" fill="#3b1812"/>
-<rect x="16" y="30" width="{120 * xp:.0f}" height="8" fill="#ef4444"/>
-<text x="144" y="38" font-size="10" fill="#fbbf24">DEAD EYE XP</text>
-<text x="16" y="54" font-size="11" fill="#fcd34d">{d["total"]} COMMITS  •  {st}D STREAK  •  {d["stars"]} STARS</text>
-{"".join(counter)}
-<text class="levelup serif" x="400" y="76" font-size="28" fill="#ef4444" stroke="#fef08a" stroke-width="0.6" text-anchor="middle" letter-spacing="2">DEAD EYE // LEVEL UP!</text>
-<!-- Stationary Pixel Cowboy Gunslinger at Left -->
-<g transform="translate(24,126)">
-  <!-- Cowboy Hat -->
-  <rect x="2" y="4" width="24" height="3" fill="#291711"/>
-  <rect x="6" y="0" width="16" height="5" fill="#3f2318"/>
-  <rect x="6" y="3" width="16" height="1.5" fill="#d97706"/>
-  <!-- Head & Bandana -->
-  <rect x="6" y="7" width="16" height="8" fill="#f5c9a0"/>
-  <rect x="16" y="9" width="3" height="3" fill="#1a1a2e"/>
-  <rect x="6" y="12" width="16" height="4" fill="#b91c1c"/>
-  <!-- Duster Coat & Poncho -->
-  <rect x="5" y="16" width="18" height="12" fill="#451a14"/>
-  <rect x="10" y="17" width="8" height="5" fill="#991b1b"/>
-  <!-- Back Arm -->
-  <rect x="1" y="16" width="4" height="9" fill="#3b1812"/>
-  <!-- Aiming Arm & Revolver (muzzle at x=34, y=14 -> world 58, 140) -->
-  <rect x="22" y="16" width="6" height="4" fill="#f5c9a0"/>
-  <rect x="27" y="13" width="7" height="3" fill="#94a3b8"/>
-  <rect x="27" y="15" width="3" height="4" fill="#78350f"/>
-  <!-- Boots / Stance -->
-  <rect x="6" y="28" width="5" height="6" fill="#1c1917"/>
-  <rect x="17" y="28" width="5" height="6" fill="#1c1917"/>
+<rect width="{W}" height="{H}" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+<text x="37" y="32" font-size="12" fill="#e6edf3" font-weight="600">{user}</text>
+<text x="763" y="32" font-size="11" fill="#8b949e" text-anchor="end">{d["total"]} commits  ·  {st}d streak  ·  {d["repos"]} repos</text>
+{"".join(cells)}
+{"".join(ghost_svg)}
+<g class="pac">
+  <g>
+    <path class="jaw-top" d="M 0,0 L 6.5,0 A 6.5,6.5 0 1,0 -6.5,0 Z" fill="#facc15"/>
+    <path class="jaw-bot" d="M 0,0 L -6.5,0 A 6.5,6.5 0 1,0 6.5,0 Z" fill="#facc15"/>
+    <circle cx="1.5" cy="-3" r="1" fill="#0d1117"/>
+  </g>
 </g>
 </svg>
 '''
