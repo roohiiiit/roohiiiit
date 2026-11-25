@@ -1,6 +1,10 @@
-### Rohit Fernantez
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=16&duration=3000&pause=1200&color=58A6FF&center=true&vCenter=true&width=720&height=52&lines=Hey%2C+I'm+Rohit+Fernantez;AI%2FML+Builder+%7C+Full-Stack+Dev;Founder+of+Kochi.Code" alt="Typing animation" />
 
 Self-taught AI/ML & Full-Stack builder from Kerala, India · Founder of **Kochi.Code** · [rfernz.biz](https://www.rfernz.biz)
+
+</div>
 
 <div align="center">
 <img src="player-stats.svg" alt="Player Stats" width="100%" />
